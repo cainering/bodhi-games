@@ -29,5 +29,12 @@ const JOYCE_GAMES = [
     about: "Dig with Bonkers! Find the bones and count them.",
     href: "bonkers-dig/index.html",
     accent: "#f8d9a8"
+  },
+  {
+    title: "Skate Park",
+    emoji: "🛹",
+    about: "Paint your board, then jump, flip and grind!",
+    href: "skateboard/index.html",
+    accent: "#b9dcff"
   }
 ];

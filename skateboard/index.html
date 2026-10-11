@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f07a1a">
+  <title>Skate Park · Bodhi's Web</title>
+  <link rel="icon" href="../apple-touch-icon.png">
+  <link rel="stylesheet" href="skate.css">
+</head>
+<body class="sk-body" data-screen="paint">
+  <!-- PAINT SCREEN -->
+  <section class="sk-paint" id="paint">
+    <header class="sk-top">
+      <a class="sk-round" href="../index.html" aria-label="Back to Bodhi's Web">🏠</a>
+      <h1 class="sk-title">🎨 Paint your board!</h1>
+      <button type="button" class="sk-round" id="paint-undo" aria-label="Undo">↩️</button>
+    </header>
+    <div class="sk-deck-wrap"><canvas id="deck" width="900" height="250" aria-label="Your skateboard. Paint it with your finger!"></canvas></div>
+    <div class="sk-row sk-colors" id="colors"></div>
+    <div class="sk-row sk-tools" id="tools"></div>
+    <div class="sk-row sk-stamps" id="stamps"></div>
+    <div class="sk-bottom">
+      <div class="sk-who">
+        <span class="sk-who-label">Who rides?</span>
+        <div class="sk-who-btns" id="riders"></div>
+      </div>
+      <button type="button" class="sk-go" id="go-ride">🛹 Let's Ride!</button>
+    </div>
+  </section>
+
+  <!-- RIDE SCREEN -->
+  <section class="sk-ride" id="ride" hidden>
+    <canvas id="park" aria-label="Skate park"></canvas>
+    <header class="sk-hud">
+      <a class="sk-round" href="../index.html" aria-label="Back to Bodhi's Web">🏠</a>
+      <div class="sk-stars" id="stars" aria-live="polite">⭐ <b id="star-count">0</b></div>
+      <button type="button" class="sk-round" id="to-paint" aria-label="Paint my board">🎨</button>
+    </header>
+    <div class="sk-trick-text" id="trick-text" aria-live="polite"></div>
+    <div class="sk-controls">
+      <button type="button" class="sk-jump" id="btn-jump" aria-label="Jump. Hold longer to jump higher.">
+        <span class="sk-jump-fill" id="jump-fill"></span>
+        <span class="sk-jump-label">⬆️<br>JUMP</span>
+      </button>
+      <div class="sk-tricks">
+        <button type="button" class="sk-trick" data-trick="kickflip" style="--c:#ffe14a">🌀<span>Kickflip</span></button>
+        <button type="button" class="sk-trick" data-trick="spin" style="--c:#b9dcff">🔄<span>360 Spin</span></button>
+        <button type="button" class="sk-trick" data-trick="grab" style="--c:#c8f0a8">✋<span>Grab</span></button>
+        <button type="button" class="sk-trick" data-trick="grind" style="--c:#ffc9a0">⚡<span>Grind</span></button>
+      </div>
+    </div>
+  </section>
+  <script src="skate.js"></script>
+</body>
+</html>
