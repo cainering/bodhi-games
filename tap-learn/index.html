@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f07a1a">
+  <title>Tap &amp; Learn · Bodhi's Web</title>
+  <link rel="icon" href="../apple-touch-icon.png">
+  <link rel="stylesheet" href="../css/site.css">
+  <link rel="stylesheet" href="../css/bodhi.css">
+  <link rel="stylesheet" href="tap.css">
+</head>
+<body class="tap-body" data-page="Tap & Learn">
+  <main id="tap-app"></main>
+  <script src="../settings.js"></script>
+  <script>
+    window.TAP_CONFIG = {
+      key: "bodhi-tap",
+      title: "Tap & Learn",
+      siteHome: "../index.html",
+      siteHomeLabel: "Bodhi's Web",
+      games: ["animals", "colors", "shapes", "count", "shabbat", "alephbet"],
+      roundSize: 5,
+      choices: 4,
+      countMax: 5,
+      rate: 0.85,
+      pause: 3600
+    };
+  </script>
+  <script src="words.js"></script>
+  <script src="tap.js"></script>
+</body>
+</html>

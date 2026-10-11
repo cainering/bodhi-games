@@ -1,0 +1,607 @@
+/* Shared Brain Break for any game on the site.
+   Include this script, then at the end of a level:
+   JoyceBrainBreaks.levelEnd({ won: true, level: n }).then(continueGame);
+   The promise resolves when the child taps Keep playing.
+   There is no timer. Question difficulty uses the saved subject
+   level plus a small nudge from the game level. */
+(function () {
+  var STORAGE_KEY = "joyce-brain-breaks";
+  var waiters = [];
+  var booted = false;
+  var session = null;
+
+  function whenReady(fn) {
+    if (booted) fn();
+    else waiters.push(fn);
+  }
+
+  function createSession() {
+    var breakOpen = false;
+    var openPromise = null;
+    var finishBreak = null;
+    var gameLevel = 1;
+    var won = false;
+    var state = loadState();
+    repairKids();
+    var liveCache = {};
+    var returnPhase = "question";
+    var overlay = null;
+    var questions = [];
+    var qIndex = 0;
+    var misses = 0;
+    var recorded = false;
+    var owner = null;
+    var phase = "players";
+    var advanceTimer = 0;
+
+    function kid(name) {
+      if (!state[name]) state[name] = window.BBEngine.freshKid(name);
+      return state[name];
+    }
+
+    function save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (err) {
+        /* Private mode can block storage. The break still works. */
+      }
+    }
+
+    function repairKids() {
+      var ownKid = (window.KIDS_CHAT && window.KIDS_CHAT.kid) || "kid";
+      [ownKid].forEach(function (name) {
+        var fresh = window.BBEngine.freshKid(name);
+        var saved = state[name] || {};
+        Object.keys(fresh).forEach(function (subject) {
+          var got = saved[subject] || {};
+          fresh[subject] = {
+            level: window.BBEngine.clampLevel(got.level == null ? fresh[subject].level : got.level, window.BBEngine.MAX[subject]),
+            streak: Number(got.streak) || 0,
+            missStreak: Number(got.missStreak) || 0,
+            placed: !!got.placed,
+            correctCount: Number(got.correctCount) || 0
+          };
+        });
+        state[name] = fresh;
+      });
+    }
+
+    function readingNow() {
+      var key = window.BBEngine.iso(window.BBEngine.saturdayOnOrAfter(new Date()));
+      if (Object.prototype.hasOwnProperty.call(liveCache, key)) {
+        return liveCache[key] && liveCache[key] !== "pending" ? liveCache[key] : null;
+      }
+      var row = window.BBEngine.currentReading(new Date());
+      if (!row) fetchHebcal(key);
+      return row;
+    }
+
+    function fetchHebcal(key) {
+      if (typeof fetch !== "function" || liveCache[key] === "pending") return;
+      liveCache[key] = "pending";
+      var url = "https://www.hebcal.com/hebcal?v=1&cfg=json&s=on&maj=on&start=" + key + "&end=" + key;
+      fetch(url)
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+          var row = window.BBEngine.readingFromHebcalItems(data && data.items, key);
+          liveCache[key] = row || null;
+        })
+        .catch(function () {
+          liveCache[key] = null;
+        });
+    }
+
+    function styleBoost() {
+      if (!window.JoyceStyle || typeof window.JoyceStyle.boost !== "function") return 0;
+      var n = Number(window.JoyceStyle.boost());
+      if (!isFinite(n) || n < 0) return 0;
+      return n;
+    }
+
+    function levelFor(who, subject) {
+      var boost = styleBoost();
+      var stored = who[subject].level;
+      if (typeof window.BBEngine.presentLevel === "function") {
+        return window.BBEngine.presentLevel(stored, subject, gameLevel, boost);
+      }
+      return window.BBEngine.effectiveLevel(stored, subject, gameLevel, boost);
+    }
+
+    function makeQuestion(subject, who, rng, reading) {
+      var level = levelFor(who, subject);
+      if (subject === "math") return window.BBEngine.generateMath(level, rng);
+      if (subject === "words") return window.BBEngine.generateWords(level, rng);
+      if (subject === "translate") {
+        var pack = window.BBEngine.generateTranslate(level, rng, state.dirIndex || 0);
+        state.dirIndex = pack.nextDirIndex;
+        return pack.question;
+      }
+      return window.BBEngine.pickParsha(level, rng, reading);
+    }
+
+    function buildQuestions(who) {
+      var plan = window.BBEngine.subjectsForBreak(state.rotIndex || 0);
+      state.rotIndex = plan.nextRot;
+      var rng = window.BBEngine.mulberry32((Date.now() ^ ((state.rotIndex + 1) * 9973)) >>> 0);
+      var reading = readingNow();
+      if (reading === "pending") reading = null;
+      return plan.subjects.map(function (subject) {
+        return makeQuestion(subject, who, rng, reading);
+      });
+    }
+
+    function refreshLaterQuestions() {
+      if (!questions.length) return;
+      var who = kid(state.player);
+      var rng = window.BBEngine.mulberry32((Date.now() + 13) >>> 0);
+      var reading = readingNow();
+      if (reading === "pending") reading = null;
+      var savedDir = state.dirIndex || 0;
+      for (var i = qIndex + 1; i < questions.length; i++) {
+        if (questions[i].subject === "translate") state.dirIndex = savedDir;
+        questions[i] = makeQuestion(questions[i].subject, who, rng, reading);
+        if (questions[i].subject !== "translate") state.dirIndex = savedDir;
+      }
+    }
+
+    function choosePlayer(name) {
+      state.player = name;
+      kid(name);
+      if (!questions.length) {
+        questions = buildQuestions(kid(name));
+        qIndex = 0;
+        save();
+        showQuestion();
+        return;
+      }
+      refreshLaterQuestions();
+      save();
+      if (returnPhase === "reveal" || returnPhase === "done") phase = returnPhase;
+      else phase = "question";
+      render();
+    }
+
+    function startBreak(level) {
+      if (breakOpen) return openPromise;
+      gameLevel = Math.round(Number(level) || 1);
+      if (gameLevel < 1) gameLevel = 1;
+      breakOpen = true;
+      questions = [];
+      qIndex = 0;
+      misses = 0;
+      recorded = false;
+      window.clearTimeout(advanceTimer);
+      openPromise = new Promise(function (resolve) {
+        finishBreak = resolve;
+      });
+      if (!state.player && window.KIDS_CHAT && window.KIDS_CHAT.kid) state.player = window.KIDS_CHAT.kid;
+      phase = state.player ? "question" : "players";
+      if (state.player) {
+        questions = buildQuestions(kid(state.player));
+        save();
+      }
+      ensureOverlay();
+      overlay.setAttribute("data-outcome", won ? "win" : "loss");
+      render();
+      return openPromise;
+    }
+
+    function levelEnd(opts) {
+      opts = opts || {};
+      won = !!opts.won;
+      return startBreak(opts.level);
+    }
+
+    function endBreak() {
+      window.clearTimeout(advanceTimer);
+      breakOpen = false;
+      if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      overlay = null;
+      var done = finishBreak;
+      finishBreak = null;
+      openPromise = null;
+      if (done) done();
+    }
+
+    function ensureOverlay() {
+      if (overlay) return;
+      overlay = document.createElement("div");
+      overlay.className = "bb-overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-label", "Brain Break");
+      document.body.appendChild(overlay);
+    }
+
+    function showQuestion() {
+      misses = 0;
+      recorded = false;
+      owner = state.player;
+      phase = "question";
+      render();
+    }
+
+    function nextStep() {
+      window.clearTimeout(advanceTimer);
+      if (qIndex >= questions.length - 1) {
+        phase = "done";
+        render();
+        return;
+      }
+      qIndex += 1;
+      showQuestion();
+    }
+
+    function grade(correct) {
+      if (recorded) return;
+      recorded = true;
+      var who = kid(owner || state.player);
+      var subject = questions[qIndex].subject;
+      window.BBEngine.noteAnswer(who[subject], subject, correct);
+      save();
+    }
+
+    function onChoice(button, question) {
+      if (phase !== "question") return;
+      if (button.disabled) return;
+      if (button.getAttribute("data-choice") === question.answer) {
+        grade(true);
+        button.classList.add("right");
+        var note = overlay.querySelector(".bb-note");
+        var buttons = overlay.querySelectorAll(".bb-choice");
+        for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
+        if (!window.JoyceStyle) {
+          if (note) note.textContent = "Yes!";
+          advanceTimer = window.setTimeout(nextStep, 700);
+          return;
+        }
+        var lead = window.JoyceStyle.t("bb.yes", "Yes!");
+        var showWhy = window.JoyceStyle.get() !== "young" && question.explain;
+        if (note) note.textContent = showWhy ? lead + " " + question.explain : lead;
+        advanceTimer = window.setTimeout(nextStep, showWhy ? 1800 : 700);
+        return;
+      }
+      misses += 1;
+      grade(false);
+      button.disabled = true;
+      button.classList.add("wrong");
+      if (misses >= 2) {
+        phase = "reveal";
+        render();
+        return;
+      }
+      var hint = overlay.querySelector(".bb-note");
+      if (!window.JoyceStyle) {
+        if (hint) hint.textContent = "Almost! Try another one.";
+      } else if (hint) {
+        hint.textContent = window.JoyceStyle.t("bb.almost", "Almost! Try another one.");
+      }
+    }
+
+    function speak(text, lang) {
+      try {
+        if (!window.speechSynthesis || !text) return;
+        window.speechSynthesis.cancel();
+        var utter = new SpeechSynthesisUtterance(text);
+        utter.lang = lang || "en-US";
+        var q = window.KIDS_SETTINGS && window.KIDS_SETTINGS.quiz;
+        if (q && q.speechRate) utter.rate = q.speechRate;
+        window.speechSynthesis.speak(utter);
+      } catch (err) {
+        /* No voice is fine. The word is still on the screen. */
+      }
+    }
+
+    function scriptClass(text) {
+      if (/[\u0590-\u05FF]/.test(text)) return "bb-he";
+      if (/[\u0400-\u04FF]/.test(text)) return "bb-ru";
+      if (/[\u0E00-\u0E7F]/.test(text)) return "bb-th";
+      return "";
+    }
+
+    function render() {
+      if (!overlay) return;
+      overlay.innerHTML = "";
+      overlay.setAttribute("data-screen", phase);
+      if (phase !== "question" && phase !== "reveal") {
+        overlay.removeAttribute("data-subject");
+        overlay.removeAttribute("data-answer");
+      }
+      var card = document.createElement("div");
+      card.className = "bb-card";
+
+      var top = document.createElement("div");
+      top.className = "bb-top";
+      var kicker = document.createElement("p");
+      kicker.className = "bb-kicker";
+      kicker.textContent = window.JoyceStyle ? window.JoyceStyle.t("bb.kicker", "Brain Break") : "Brain Break";
+      top.appendChild(kicker);
+      if (phase !== "players" || questions.length) {
+        var switcher = document.createElement("button");
+        switcher.type = "button";
+        switcher.className = "bb-switch";
+        var chatCfg = window.KIDS_CHAT || {};
+        var whoName = (chatCfg.kid && state.player === chatCfg.kid) ? (chatCfg.kidName || "Player") : "Player";
+        switcher.textContent = state.player
+          ? whoName + " · switch"
+          : (window.JoyceStyle ? window.JoyceStyle.t("bb.switch", "Switch player") : "Switch player");
+        switcher.addEventListener("click", function () {
+          if (phase !== "players") returnPhase = phase;
+          phase = "players";
+          render();
+        });
+        top.appendChild(switcher);
+      }
+      card.appendChild(top);
+
+      if (phase === "players") {
+        var title = document.createElement("h2");
+        title.className = "bb-title";
+        title.textContent = window.JoyceStyle ? window.JoyceStyle.t("bb.who", "Who is playing?") : "Who is playing?";
+        var sub = document.createElement("p");
+        sub.className = "bb-sub";
+        sub.textContent = window.JoyceStyle ? window.JoyceStyle.t("bb.tap", "Tap your name.") : "Tap your name.";
+        var players = document.createElement("div");
+        players.className = "bb-players";
+        var primaryId = (window.KIDS_CHAT && window.KIDS_CHAT.kid) || "kid";
+        var primaryName = (window.KIDS_CHAT && window.KIDS_CHAT.kidName) || "Player";
+        players.appendChild(playerButton(primaryName, primaryId));
+        card.appendChild(title);
+        card.appendChild(sub);
+        card.appendChild(players);
+      } else if (phase === "done") {
+        var emoji = document.createElement("div");
+        emoji.className = "bb-done-emoji";
+        var doneTitle = document.createElement("h2");
+        doneTitle.className = "bb-title";
+        var doneText = document.createElement("p");
+        doneText.className = "bb-sub";
+        var keep = document.createElement("button");
+        keep.type = "button";
+        keep.className = "bb-next";
+        keep.addEventListener("click", endBreak);
+        if (!window.JoyceStyle) {
+          emoji.textContent = "⭐ 🎉 ⭐";
+          doneTitle.textContent = "Brain break complete!";
+          doneText.textContent = won
+            ? "You finished the level. Back to the game!"
+            : "Good try. Back to the game!";
+          keep.textContent = "Keep playing";
+        } else {
+          var register = window.JoyceStyle.get();
+          emoji.textContent = register === "young" ? "⭐" : "";
+          doneTitle.textContent = window.JoyceStyle.t("bb.doneTitle", "Brain break complete!");
+          doneText.textContent = won
+            ? window.JoyceStyle.t("bb.doneWin", "You finished the level. Back to the game!")
+            : window.JoyceStyle.t("bb.doneLoss", "Good try. Back to the game!");
+          keep.textContent = window.JoyceStyle.t("bb.keep", "Keep playing");
+        }
+        if (emoji.textContent) card.appendChild(emoji);
+        card.appendChild(doneTitle);
+        card.appendChild(doneText);
+        card.appendChild(keep);
+      } else {
+        var question = questions[qIndex];
+        overlay.setAttribute("data-subject", question.subject);
+        overlay.setAttribute("data-answer", question.answer);
+        var dots = document.createElement("ul");
+        dots.className = "bb-progress";
+        for (var d = 0; d < questions.length; d++) {
+          var dot = document.createElement("li");
+          if (d <= qIndex) dot.className = "on";
+          dots.appendChild(dot);
+        }
+        card.appendChild(dots);
+        var step = document.createElement("p");
+        step.className = "bb-sub";
+        step.textContent = labelFor(question) + " · " + (qIndex + 1) + " of " + questions.length;
+        card.appendChild(step);
+        if (question.subject === "parsha" && question.weekTitle) {
+          var week = document.createElement("p");
+          week.className = "bb-week";
+          week.textContent = (window.JoyceStyle ? window.JoyceStyle.t("bb.week", "This week: ") : "This week: ") + question.weekTitle;
+          card.appendChild(week);
+        }
+        var prompt = document.createElement("p");
+        prompt.className = "bb-prompt" + (question.display === "equation" ? " bb-equation" : "");
+        prompt.textContent = question.prompt;
+        card.appendChild(prompt);
+        var bbq = window.KIDS_SETTINGS && window.KIDS_SETTINGS.quiz;
+        if (bbq && bbq.readAloud && phase === "question" && card._spokenFor !== qIndex) {
+          window.setTimeout(function () {
+            speak(question.prompt, "en-US");
+            if (question.word && window.speechSynthesis) {
+              var u2 = new SpeechSynthesisUtterance(question.speak || question.word);
+              u2.lang = question.speakLang || "en-US";
+              if (bbq.speechRate) u2.rate = bbq.speechRate;
+              window.speechSynthesis.speak(u2);
+            }
+          }, 300);
+        }
+        if (question.word) {
+          var word = document.createElement("div");
+          word.className = "bb-word " + scriptClass(question.word);
+          word.textContent = question.word;
+          if (scriptClass(question.word) === "bb-he") word.setAttribute("dir", "rtl");
+          card.appendChild(word);
+          if (window.speechSynthesis) {
+            var hear = document.createElement("button");
+            hear.type = "button";
+            hear.className = "bb-speak";
+            hear.textContent = window.JoyceStyle ? window.JoyceStyle.t("bb.hear", "Hear it") : "Hear it";
+            hear.addEventListener("click", function () {
+              speak(question.speak || question.word, question.speakLang);
+            });
+            card.appendChild(hear);
+          }
+        }
+        if (phase === "reveal") {
+          var answer = document.createElement("p");
+          answer.className = "bb-answer " + scriptClass(question.answer);
+          answer.textContent = question.answer;
+          if (scriptClass(question.answer) === "bb-he") answer.setAttribute("dir", "rtl");
+          var explain = document.createElement("p");
+          explain.className = "bb-explain";
+          explain.textContent = question.explain;
+          var got = document.createElement("button");
+          got.type = "button";
+          got.className = "bb-next";
+          got.textContent = window.JoyceStyle ? window.JoyceStyle.t("bb.got", "Got it") : "Got it";
+          got.addEventListener("click", nextStep);
+          card.appendChild(answer);
+          card.appendChild(explain);
+          card.appendChild(got);
+        } else {
+          var choices = document.createElement("div");
+          choices.className = "bb-choices";
+          question.choices.forEach(function (choice) {
+            var button = document.createElement("button");
+            button.type = "button";
+            button.className = "bb-choice " + scriptClass(choice);
+            button.textContent = choice;
+            button.setAttribute("data-choice", choice);
+            if (scriptClass(choice) === "bb-he") button.setAttribute("dir", "rtl");
+            button.addEventListener("click", function () {
+              onChoice(button, question);
+            });
+            choices.appendChild(button);
+          });
+          var note = document.createElement("p");
+          note.className = "bb-note";
+          note.textContent = "";
+          card.appendChild(choices);
+          card.appendChild(note);
+        }
+      }
+
+      overlay.appendChild(card);
+    }
+
+    function playerButton(label, name) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "bb-player" + (name === "miriam" ? " miriam" : "");
+      button.textContent = label;
+      button.addEventListener("click", function () {
+        choosePlayer(name);
+      });
+      return button;
+    }
+
+    function labelFor(question) {
+      if (!window.JoyceStyle) {
+        if (question.subject === "math") return "Adding and subtracting";
+        if (question.subject === "words") return "Word problem";
+        if (question.subject === "translate") return "Word match";
+        return "Torah portion";
+      }
+      if (question.subject === "math") return window.JoyceStyle.t("bb.math", "Adding and subtracting");
+      if (question.subject === "words") return window.JoyceStyle.t("bb.words", "Word problem");
+      if (question.subject === "translate") return window.JoyceStyle.t("bb.translate", "Word match");
+      return window.JoyceStyle.t("bb.parsha", "Torah portion");
+    }
+
+    function seedFromLevelTest(opts) {
+      opts = opts || {};
+      var name = opts.kid;
+      var own = (window.KIDS_CHAT && window.KIDS_CHAT.kid) || "";
+      if (!name || name !== own) return { kid: name || "", plan: {}, skipped: true };
+      var plan = window.BBEngine.seedPlan(opts.levels || {});
+      window.BBEngine.applySeed(kid(name), plan);
+      if (!state.player) state.player = name;
+      save();
+      return { kid: name, plan: plan };
+    }
+
+    if (typeof window !== "undefined" && window.addEventListener) {
+      window.addEventListener("jw-style-change", function () {
+        if (!breakOpen) return;
+        refreshLaterQuestions();
+        render();
+      });
+    }
+
+    return {
+      levelEnd: levelEnd,
+      seedFromLevelTest: seedFromLevelTest
+    };
+  }
+
+  function loadState() {
+    var empty = { player: null, rotIndex: 0, dirIndex: 0 };
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (!saved || typeof saved !== "object") return empty;
+      saved.rotIndex = Number(saved.rotIndex) || 0;
+      saved.dirIndex = Number(saved.dirIndex) || 0;
+      var own = (window.KIDS_CHAT && window.KIDS_CHAT.kid) || "";
+      if (saved.player !== own) saved.player = null;
+      return saved;
+    } catch (err) {
+      return empty;
+    }
+  }
+
+  function scriptBase() {
+    var script = document.currentScript;
+    if (script && script.src) return script.src.replace(/[^/]*$/, "");
+    var tags = document.getElementsByTagName("script");
+    for (var i = tags.length - 1; i >= 0; i--) {
+      if (tags[i].src && /brain-break\.js$/.test(tags[i].src)) {
+        return tags[i].src.replace(/[^/]*$/, "");
+      }
+    }
+    return "brain-break/";
+  }
+
+  function loadScripts(files, done) {
+    var base = scriptBase();
+    var index = 0;
+    function next() {
+      if (index >= files.length) {
+        done();
+        return;
+      }
+      var tag = document.createElement("script");
+      tag.src = base + files[index];
+      index += 1;
+      tag.onload = next;
+      tag.onerror = next;
+      document.head.appendChild(tag);
+    }
+    next();
+  }
+
+  window.JoyceBrainBreaks = {
+    levelEnd: function (opts) {
+      return new Promise(function (resolve) {
+        whenReady(function () {
+          if (!session) {
+            resolve();
+            return;
+          }
+          session.levelEnd(opts).then(resolve, resolve);
+        });
+      });
+    },
+    seedFromLevelTest: function (opts) {
+      return new Promise(function (resolve) {
+        whenReady(function () {
+          if (!session) {
+            resolve({ plan: {}, skipped: true });
+            return;
+          }
+          resolve(session.seedFromLevelTest(opts));
+        });
+      });
+    }
+  };
+
+  loadScripts(["schedule.js", "vocab.js", "parsha.js", "engine.js"], function () {
+    if (window.BBEngine) session = createSession();
+    booted = true;
+    var queued = waiters.slice();
+    waiters = [];
+    queued.forEach(function (fn) { fn(); });
+  });
+})();

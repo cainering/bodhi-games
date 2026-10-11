@@ -1,0 +1,63 @@
+/* Bodhi's Web: orange tiger theme, big text, big tap targets, buddies. */
+:root {
+  --ink: #3a2208;
+  --ink-soft: #7a4a14;
+  --sky-top: #fff1d6;
+  --sky-mid: #ffc477;
+  --sky-deep: #f07a1a;
+  --line: #8a3f00;
+  --sun: #ffe14a;
+  --shadow: 0 8px 0 #8a3f00;
+}
+body { font-size: 26px; }
+.game-card { min-height: 150px; }
+.game-card .game-emoji { font-size: 64px; }
+.game-card .game-title { font-size: 32px; }
+.game-card .game-about { font-size: 20px; }
+.buddies { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 6px auto 18px; }
+.buddy { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; width: 150px;
+  background: #fff; border: 4px solid var(--line); border-radius: 24px; box-shadow: 0 6px 0 var(--line); font-size: 22px; font-weight: 800; color: var(--ink); }
+.buddy img { width: 120px; height: 120px; border-radius: 18px; object-fit: cover; }
+.buddy:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--line); }
+/* Quiz (Treasure Map and Practice): much bigger for a 5-year-old. */
+.quest-app[data-screen="question"] .q-prompt { font-size: 52px !important; line-height: 1.2; font-weight: 800; text-align: center; margin: 6px 0 10px; }
+.quest-app[data-subject="math"][data-screen="question"] .q-prompt { font-size: 84px !important; letter-spacing: 0.04em; }
+.quest-app[data-screen="question"] .q-choices { gap: 20px !important; }
+.quest-app[data-screen="question"] .q-choice { min-height: 130px !important; font-size: 52px !important; font-weight: 800; border-radius: 30px !important; justify-content: center; text-align: center; }
+.quest-app[data-subject="math"][data-screen="question"] .q-choice { font-size: 72px !important; }
+.quest-app[data-screen="question"] .q-note { font-size: 28px !important; text-align: center; }
+.quest-app[data-screen="question"] .q-next { min-height: 110px !important; font-size: 44px !important; border-radius: 30px !important; }
+.quest-app[data-screen="question"] .quest-side { font-size: 22px; }
+.quest-app[data-screen="question"] .q-kicker { font-size: 22px; }
+/* Treasure Map's small host line is replaced by the buddy on question screens. */
+.quest-app[data-screen="question"] > .mascot { display: none; }
+.island { min-height: 110px !important; font-size: 34px !important; border-radius: 26px !important; }
+.q-speak { font-size: 32px !important; min-height: 84px !important; padding: 10px 30px !important; border-radius: 999px !important; display: block; margin: 0 auto 10px; }
+/* Buddy cheering him on, above each question. */
+.buddy-cheer { display: flex; align-items: center; gap: 16px; margin: 4px 0 10px; flex: 0 0 auto; }
+.buddy-cheer img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 5px solid var(--line); background: #fff; flex: 0 0 auto; }
+.buddy-cheer .bubble { position: relative; background: #fff; border: 4px solid var(--line); border-radius: 28px; padding: 12px 22px; font-size: 32px; font-weight: 800; color: var(--ink); }
+.buddy-cheer .bubble::before { content: ""; position: absolute; left: -18px; top: 50%; margin-top: -12px; border: 12px solid transparent; border-right: 18px solid var(--line); border-left: 0; }
+.buddy-cheer .label { display: block; font-size: 18px; font-weight: 700; color: var(--ink-soft); }
+.buddy-cheer.happy img { transform: rotate(-6deg) scale(1.06); transition: transform .4s ease; }
+@media (orientation: portrait) {
+  .quest-app[data-screen="question"] .q-choice { min-height: 148px !important; }
+}
+@media (orientation: landscape) and (max-height: 900px) {
+  .quest-app[data-screen="question"] > .trail { display: none; }
+  .quest-app[data-screen="question"] .q-prompt { font-size: 44px !important; margin: 0 0 6px; }
+  .buddy-cheer { margin: 0 0 6px; }
+  .quest-app[data-subject="math"][data-screen="question"] .q-prompt { font-size: 68px !important; }
+  .quest-app[data-screen="question"] .q-choice { min-height: 92px !important; font-size: 44px !important; }
+  .quest-app[data-screen="question"] .q-choices { gap: 14px !important; }
+  .quest-app[data-subject="math"][data-screen="question"] .q-choice { font-size: 58px !important; }
+  .buddy-cheer img { width: 84px; height: 84px; }
+  .buddy-cheer .bubble { font-size: 26px; }
+  .q-speak { min-height: 60px !important; font-size: 26px !important; margin-bottom: 8px; }
+}
+.mascot-face img.buddy-face { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; border: 3px solid var(--line); background: #fff; }
+.mascot-face { width: auto !important; height: auto !important; }
+.q-choice.right { background: #c9f2d0 !important; }
+.q-choice.wrong { background: #fff1d6 !important; border-style: dashed !important; }
+.bb-choice, .bb-next, .bb-speak { min-height: 88px; font-size: 30px; }
+.bb-prompt { font-size: 30px; }

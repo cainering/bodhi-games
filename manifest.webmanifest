@@ -1,0 +1,17 @@
+{
+  "name": "Bodhi's Web",
+  "short_name": "Bodhi's Web",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#5eb6ff",
+  "theme_color": "#f07a1a",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
