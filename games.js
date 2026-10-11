@@ -24,10 +24,10 @@ const JOYCE_GAMES = [
     accent: "#ffe7a0"
   },
   {
-    title: "Spa Salon",
-    emoji: "💇",
-    about: "Make a silly new look.",
-    href: "spa-salon/index.html",
-    accent: "#f8c6e4"
+    title: "Bonkers Digs",
+    emoji: "🐶",
+    about: "Dig with Bonkers! Find the bones and count them.",
+    href: "bonkers-dig/index.html",
+    accent: "#f8d9a8"
   }
 ];

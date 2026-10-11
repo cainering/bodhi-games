@@ -17,7 +17,7 @@
     "homework/index.html": "game.homework",
     "animal-puzzle/index.html": "game.animals",
     "ice-cream-scoop/index.html": "game.icecream",
-    "spa-salon/index.html": "game.spa"
+    "bonkers-dig/index.html": "game.dig"
   };
 
   function draw() {

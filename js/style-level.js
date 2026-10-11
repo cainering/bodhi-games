@@ -88,10 +88,10 @@
       older: "Ocean Sudoku and crossword clues. Then build your own ice cream.",
       advanced: "A seaside crossword-Sudoku. Clear a wave, then compose an ice cream."
     },
-    "game.spa": {
-      young: "Try hair, makeup, and nails. Dig a silly hole too.",
-      older: "Style hair, makeup, skin, and nails. A silly dig is there too.",
-      advanced: "Compose a look: hair, makeup, skin, and nails. A concealed dig remains, should you want it."
+    "game.dig": {
+      young: "Dig with Bonkers! Find the bones and count them.",
+      older: "Dig with Bonkers. Find the bones and count them.",
+      advanced: "Dig with Bonkers and count every bone you find."
     },
     "practice.lead": {
       young: "{bot} has more questions. A right answer can earn {n} {unit}.",
@@ -609,103 +609,6 @@
         "Mint cells are the clue. Read those letters in order. They spell the word. A digit may sit inside it.",
         "Finish a wave to earn scoops, then compose an ice cream and save it.",
         "The scoop board ranks everyone on this iPad."
-      ]
-    },
-    "spa.kicker": {
-      young: "A huge spa just for you",
-      older: "A spa for you",
-      advanced: "The salon is open"
-    },
-    "spa.sub": {
-      young: "Try hair on the mannequin, then style the guest. Style points stay in this game.",
-      older: "Try hair on the mannequin, then style the guest. Style points stay in this game.",
-      advanced: "Test hair on the mannequin, then dress the guest. Style points stay inside this game."
-    },
-    "spa.howtoLead": {
-      young: "Welcome to Spa Salon. Each guest wants one look.",
-      older: "Welcome to Spa Salon. Each guest wants one look.",
-      advanced: "Each guest arrives with one requested look."
-    },
-    "spa.lets": {
-      young: "Let's play",
-      older: "Start",
-      advanced: "Begin"
-    },
-    "spa.style": {
-      young: "Let's style",
-      older: "Start styling",
-      advanced: "Begin"
-    },
-    "spa.digAgain": {
-      young: "Dig again",
-      older: "Dig again",
-      advanced: "Dig again"
-    },
-    "spa.digFirst": {
-      young: "Tee-hee. It's poop. +{n} style points.",
-      older: "Found it. +{n} style points.",
-      advanced: "Excavation complete. +{n} style points, as advertised."
-    },
-    "spa.digAgainMsg": {
-      young: "Tee-hee. It's poop again.",
-      older: "There it is again.",
-      advanced: "The same find, again."
-    },
-    "spa.digStay": {
-      young: "Silly surprise. Those {n} style points stay in this game.",
-      older: "Those {n} style points stay in this game.",
-      advanced: "Those {n} style points remain in this game."
-    },
-    "spa.digAlready": {
-      young: "You already got the silly style points.",
-      older: "You already received those style points.",
-      advanced: "Those style points are already counted."
-    },
-    "spa.digHint": {
-      young: "Tap or hold Dig. Something silly is under the grass.",
-      older: "Tap or hold Dig. Something silly is under the grass.",
-      advanced: "Tap or hold Dig. Something is buried under the grass."
-    },
-    "spa.hit": {
-      young: "Yes. {name}",
-      older: "Matched. {name}",
-      advanced: "Matched. {name}"
-    },
-    "spa.miss": {
-      young: "Wanted {wanted}. You picked {got}.",
-      older: "Wanted {wanted}. You picked {got}.",
-      advanced: "The list asked for {wanted}. This look has {got}."
-    },
-    "spa.steps": {
-      young: [
-        "Read the look list. It tells you the hair, makeup, skincare, and nails.",
-        "Tap a hair style. It goes on the mannequin head first.",
-        "Tap Put this hair on the guest when you want them to wear it.",
-        "Pick makeup, skincare, and nail polish. Those go right on the guest.",
-        "Tap Dig anytime. Tap or hold Dig until a silly surprise pops up. The first time adds 5 style points.",
-        "Tap All done. The spa checks the list.",
-        "Looks amazing is 40 style points. Looks okay is 20. Looks kinda bad is 5. Looks horrible is 0.",
-        "Style points stay in this game. The star bar is your real stars."
-      ],
-      older: [
-        "Read the look list. It tells you the hair, makeup, skincare, and nails.",
-        "Tap a hair style. It goes on the mannequin head first.",
-        "Tap Put this hair on the guest when you want them to wear it.",
-        "Pick makeup, skincare, and nail polish. Those go right on the guest.",
-        "Tap Dig anytime. Tap or hold Dig until a surprise pops up. The first time adds 5 style points.",
-        "Tap All done. The spa checks the list.",
-        "Looks amazing is 40 style points. Looks okay is 20. Looks kinda bad is 5. Looks horrible is 0.",
-        "Style points stay in this game. The star bar is your real stars."
-      ],
-      advanced: [
-        "Read the brief. It specifies hair, makeup, skincare, and nails.",
-        "Choose a hair style. It appears on the mannequin first.",
-        "Apply that hair to the guest when you want it worn.",
-        "Choose makeup, skincare, and nail polish. Those go directly on the guest.",
-        "Dig at any time. Hold Dig until the buried find appears. The first discovery adds 5 style points.",
-        "Tap All done. The salon checks the brief.",
-        "Looks amazing is 40 style points. Looks okay is 20. Looks kinda bad is 5. Looks horrible is 0.",
-        "Style points stay in this game. The star bar is separate."
       ]
     },
     "animal.lead": {

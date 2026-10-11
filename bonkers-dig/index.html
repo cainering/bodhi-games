@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#f07a1a">
+  <title>Bonkers Digs · Bodhi's Web</title>
+  <link rel="icon" href="../apple-touch-icon.png">
+  <link rel="stylesheet" href="dig.css">
+</head>
+<body class="dig-body">
+  <header class="dig-top">
+    <a class="dig-home" href="../index.html" aria-label="Back to Bodhi's Web">🏠</a>
+    <div class="dig-bones" id="dig-count" aria-live="polite"></div>
+    <button type="button" class="dig-hear" id="dig-hear" aria-label="Hear it again">🔊</button>
+  </header>
+  <section class="dig-buddy">
+    <img id="dig-pic" src="img/bonkers.jpg" alt="Bonkers the Dog">
+    <p class="dig-say" id="dig-say">Tap to dig!</p>
+  </section>
+  <main class="dig-yard" id="dig-yard"></main>
+  <section class="dig-cheer" id="dig-cheer" hidden>
+    <img src="img/bonkers-happy.jpg" alt="Bonkers the Dog, happy">
+    <p class="dig-cheer-text" id="dig-cheer-text"></p>
+    <button type="button" class="dig-again" id="dig-again">🐾 Dig again!</button>
+  </section>
+  <script src="dig.js"></script>
+</body>
+</html>
