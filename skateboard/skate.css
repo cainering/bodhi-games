@@ -1,11 +1,13 @@
 /* Bodhi's Skate Park: big tap targets, warm tiger colors, no flashing. */
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; overflow: hidden; }
+html, body { margin: 0; min-height: 100%; }
+body[data-screen="ride"] { overflow: hidden; height: 100%; }
 body.sk-body {
   font-family: "Trebuchet MS", "Avenir Next", system-ui, sans-serif; color: #3a2208;
   background: linear-gradient(#fff1d6, #ffc477);
-  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none;
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
 }
+body[data-screen="ride"].sk-body { touch-action: none; }
 [hidden] { display: none !important; }
 .sk-round {
   width: 84px; height: 84px; flex: 0 0 auto; border-radius: 26px; border: 4px solid #8a3f00; background: #fff;
@@ -14,8 +16,8 @@ body.sk-body {
 .sk-round:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a3f00; }
 
 /* ---------- Paint ---------- */
-.sk-paint { height: 100dvh; display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: max(10px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom)); }
+.sk-paint { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) calc(150px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
 .sk-top { width: min(1000px, 100%); display: flex; align-items: center; gap: 12px; }
 .sk-title { flex: 1; margin: 0; text-align: center; font-size: clamp(32px, 5.5vw, 52px); font-weight: 900; }
 .sk-deck-wrap { width: min(1000px, 100%); display: flex; justify-content: center; padding: 6px 0 16px; position: relative; }
@@ -33,19 +35,22 @@ body.sk-body {
 .sk-tool span { font-size: 20px; font-weight: 800; }
 .sk-tool.on, .sk-stamp.on { background: #ffe14a; transform: translateY(3px); box-shadow: 0 2px 0 #8a3f00; }
 .sk-stamp img { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; }
-.sk-bottom { width: min(1000px, 100%); display: flex; align-items: center; gap: 16px; margin-top: auto; flex-wrap: wrap; justify-content: center; }
+/* Rider picker + Let's Ride: always visible, pinned to the bottom of the screen. */
+.sk-bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: center; gap: 16px;
+  padding: 10px max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  background: rgba(255, 214, 150, .97); border-top: 4px solid #8a3f00; box-shadow: 0 -4px 14px rgba(138,63,0,.18); }
 .sk-who { display: flex; align-items: center; gap: 10px; }
 .sk-who-label { font-size: 26px; font-weight: 900; }
 .sk-who-btns { display: flex; gap: 10px; }
 .sk-rider { width: 96px; height: 96px; border-radius: 24px; border: 4px solid #8a3f00; background: #fff; padding: 0; overflow: hidden; cursor: pointer; box-shadow: 0 5px 0 #8a3f00; opacity: .6; }
 .sk-rider img { width: 100%; height: 100%; object-fit: cover; }
 .sk-rider.on { opacity: 1; outline: 6px solid #ffe14a; transform: translateY(3px) scale(1.06); }
-.sk-go { flex: 1; min-width: 300px; min-height: 110px; font-size: clamp(38px, 6vw, 56px); font-weight: 900; color: #3a2208;
+.sk-go { flex: 1 1 auto; max-width: 560px; min-width: 0; min-height: 110px; font-size: clamp(38px, 6vw, 56px); font-weight: 900; color: #3a2208;
   background: #ffe14a; border: 5px solid #8a3f00; border-radius: 34px; box-shadow: 0 8px 0 #8a3f00; cursor: pointer; }
 .sk-go:active { transform: translateY(5px); box-shadow: 0 3px 0 #8a3f00; }
 
 /* ---------- Ride ---------- */
-.sk-ride { position: fixed; inset: 0; }
+.sk-ride { position: fixed; left: 0; top: 0; width: 100%; height: 100vh; height: 100dvh; overflow: hidden; }
 #park { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .sk-hud { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: max(10px, env(safe-area-inset-top)) 14px 0; pointer-events: none; }
@@ -93,3 +98,54 @@ body.sk-body {
   .sk-trick span { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { .sk-trick-text.show { animation-duration: 1.6s; } }
+
+/* ---------- Phones ---------- */
+@media (max-width: 600px) {
+  .sk-round { width: 60px; height: 60px; border-radius: 18px; font-size: 32px; box-shadow: 0 4px 0 #8a3f00; }
+  .sk-stars { min-height: 60px; font-size: 32px; padding: 2px 16px; border-radius: 20px; }
+  .sk-title { font-size: 26px; }
+  .sk-paint { gap: 10px; padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+  .sk-deck-wrap { padding-bottom: 10px; }
+  .sk-colors { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; justify-items: center; }
+  .sk-swatch { width: min(13vw, 50px); height: min(13vw, 50px); border-width: 3px; box-shadow: 0 3px 0 #8a3f00; }
+  .sk-tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .sk-tool { min-width: 0; height: 64px; padding: 0 2px; flex-direction: column; gap: 0; font-size: 26px; border-width: 3px; border-radius: 16px; box-shadow: 0 4px 0 #8a3f00; }
+  .sk-tool span { font-size: 13px; }
+  .sk-stamps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .sk-stamp { min-width: 0; height: 54px; padding: 0; font-size: 28px; border-width: 3px; border-radius: 16px; box-shadow: 0 4px 0 #8a3f00; }
+  .sk-stamp img { width: 42px; height: 42px; }
+  .sk-bottom { gap: 8px; padding-top: 8px; }
+  .sk-who-label { display: none; }
+  .sk-who-btns { gap: 6px; }
+  .sk-rider { width: 58px; height: 58px; border-radius: 16px; border-width: 3px; box-shadow: 0 3px 0 #8a3f00; }
+  .sk-rider.on { outline-width: 4px; }
+  .sk-go { min-height: 72px; font-size: 24px; border-radius: 24px; border-width: 4px; box-shadow: 0 5px 0 #8a3f00; padding: 0 8px; line-height: 1.1; }
+  .sk-hud { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+  .sk-controls { gap: 8px; padding: 0 max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+  .sk-jump { width: min(34vw, 130px); height: min(34vw, 130px); font-size: 26px; border-width: 5px; }
+  .sk-tricks { grid-template-columns: repeat(2, min(26vw, 100px)); gap: 8px; }
+  .sk-trick { height: min(22vw, 84px); font-size: 28px; border-width: 4px; border-radius: 22px; box-shadow: 0 5px 0 #8a3f00; }
+  .sk-trick span { font-size: 13px; }
+}
+/* Short screens (phone landscape) */
+@media (orientation: landscape) and (max-height: 520px) {
+  .sk-round { width: 56px; height: 56px; border-radius: 16px; font-size: 30px; box-shadow: 0 4px 0 #8a3f00; }
+  .sk-stars { min-height: 56px; font-size: 30px; padding: 2px 14px; }
+  .sk-title { font-size: 26px; }
+  .sk-paint { gap: 8px; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  #deck { width: min(100%, 560px); height: auto; max-height: none; }
+  .sk-swatch { width: 44px; height: 44px; }
+  .sk-tool, .sk-stamp { height: 54px; min-width: 60px; font-size: 26px; }
+  .sk-tool span { font-size: 15px; }
+  .sk-stamp img { width: 42px; height: 42px; }
+  .sk-bottom { padding-top: 6px; }
+  .sk-who-label { font-size: 20px; }
+  .sk-rider { width: 58px; height: 58px; }
+  .sk-go { min-height: 64px; font-size: 28px; }
+  .sk-controls { padding-bottom: max(10px, env(safe-area-inset-bottom)); padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+  .sk-jump { width: 112px; height: 112px; font-size: 24px; border-width: 5px; }
+  .sk-tricks { grid-template-columns: repeat(4, 88px); gap: 8px; }
+  .sk-trick { height: 76px; font-size: 26px; border-width: 4px; border-radius: 20px; }
+  .sk-trick span { font-size: 13px; }
+  .sk-trick-text { top: 24%; font-size: 52px; }
+}

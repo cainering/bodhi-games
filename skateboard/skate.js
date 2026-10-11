@@ -231,7 +231,7 @@
   /* ---------------- Screens ---------------- */
   var firstRide = true;
   function showRide() {
-    document.body.dataset.screen = "ride"; $("paint").hidden = true; $("ride").hidden = false;
+    document.body.dataset.screen = "ride"; $("paint").hidden = true; $("ride").hidden = false; window.scrollTo(0, 0);
     audio(); startLoops(); resize(); running = true; lastT = 0; requestAnimationFrame(frame);
     if (firstRide) { firstRide = false; showText("LET'S RIDE!", "Hold JUMP to go super high!"); speak("Let's ride! Hold the jump button to jump super high!"); }
     else speak("Let's go!");
@@ -541,13 +541,16 @@
   /* ---------------- Rendering ---------------- */
   var cv = $("park"), ctx = cv.getContext("2d"), W = 0, H = 0, dpr = 1, baseY = 0, baseS = 1;
   function resize() {
-    dpr = Math.min(2, window.devicePixelRatio || 1); W = window.innerWidth; H = window.innerHeight;
+    dpr = Math.min(2, window.devicePixelRatio || 1); var vv = window.visualViewport; W = window.innerWidth; H = window.innerHeight;
+    var rb = $("ride").getBoundingClientRect(); if (rb.height > 50) { W = rb.width; H = rb.height; } else if (vv) { W = vv.width; H = vv.height; }
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     var ch = document.querySelector(".sk-controls").offsetHeight || 220;
     baseY = Math.min(H * 0.8, H - ch - 10); if (baseY < H * 0.55) baseY = H * 0.6;
     baseS = clamp(Math.min(W / 1000, baseY / 680), 0.5, 1.3);
   }
   window.addEventListener("resize", function () { if (!$("ride").hidden) resize(); });
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", function () { if (!$("ride").hidden) resize(); });
+  window.addEventListener("orientationchange", function () { setTimeout(function () { if (!$("ride").hidden) resize(); }, 300); });
   var RX = function () { return W * 0.3; };
   function sx(wx) { return RX() + (wx - S.x) * cam.s; }
   function sy(wy) { return baseY - (wy - cam.y) * cam.s; }
