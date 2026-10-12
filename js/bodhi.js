@@ -11,7 +11,8 @@
   ];
   var turn = Math.floor(Math.random() * BUDDIES.length);
 
-  function say(text) {
+  function say(text, voice) {
+    if (window.KidsVoice) { window.KidsVoice.say([{ text: text, lang: "en", voice: voice || "" }], { rate: 0.9 }); return; }
     try {
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
@@ -23,7 +24,10 @@
   }
 
   document.querySelectorAll(".buddy[data-say]").forEach(function (btn) {
-    btn.addEventListener("click", function () { say(btn.getAttribute("data-say")); });
+    /* Each buddy speaks in his own character voice (tommy / bonkers / smash clips). */
+    var img = btn.querySelector("img");
+    var who = img ? (img.getAttribute("src").match(/buddies\/(\w+)\./) || [])[1] : "";
+    btn.addEventListener("click", function () { say(btn.getAttribute("data-say"), who); });
   });
 
   function swapFaces() {

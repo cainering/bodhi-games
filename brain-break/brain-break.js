@@ -278,7 +278,12 @@
       }
     }
 
-    function speak(text, lang) {
+    function speak(text, lang, keep) {
+      if (window.KidsVoice && text) {
+        var bq = window.KIDS_SETTINGS && window.KIDS_SETTINGS.quiz;
+        window.KidsVoice.say([{ text: text, lang: lang || "en" }], { interrupt: !keep, rate: bq && bq.speechRate });
+        return;
+      }
       try {
         if (!window.speechSynthesis || !text) return;
         window.speechSynthesis.cancel();
@@ -410,7 +415,8 @@
         if (bbq && bbq.readAloud && phase === "question" && card._spokenFor !== qIndex) {
           window.setTimeout(function () {
             speak(question.prompt, "en-US");
-            if (question.word && window.speechSynthesis) {
+            if (question.word && window.KidsVoice) speak(question.speak || question.word, question.speakLang, true);
+            else if (question.word && window.speechSynthesis) {
               var u2 = new SpeechSynthesisUtterance(question.speak || question.word);
               u2.lang = question.speakLang || "en-US";
               if (bbq.speechRate) u2.rate = bbq.speechRate;
@@ -424,7 +430,7 @@
           word.textContent = question.word;
           if (scriptClass(question.word) === "bb-he") word.setAttribute("dir", "rtl");
           card.appendChild(word);
-          if (window.speechSynthesis) {
+          if (window.speechSynthesis || window.KidsVoice) {
             var hear = document.createElement("button");
             hear.type = "button";
             hear.className = "bb-speak";

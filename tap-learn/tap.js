@@ -32,6 +32,11 @@
   function say(parts, interrupt) {
     /* parts: [{text, lang}] spoken in order. Missing Hebrew/Thai voices are skipped,
        so Hebrew or Thai letters are never read by an English voice. */
+    if (window.KidsVoice) {
+      /* Real recorded (neural) clips from audio/; browser voice only for anything without a clip. */
+      window.KidsVoice.say(parts, { interrupt: interrupt !== false, rate: RATE, pitch: 1, skipMissing: true });
+      return;
+    }
     if (!window.speechSynthesis) return;
     try {
       if (interrupt !== false) window.speechSynthesis.cancel();

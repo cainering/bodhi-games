@@ -11,7 +11,8 @@
   var EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
 
   /* ---------------- Speech ---------------- */
-  function speak(text) {
+  function speak(text, voice) {
+    if (window.KidsVoice) { window.KidsVoice.say([{ text: text, lang: "en", voice: voice || "" }], { rate: 1.0, pitch: 1.3 }); return; }
     var s = window.speechSynthesis;
     if (!s || typeof SpeechSynthesisUtterance === "undefined") return;
     try {
@@ -223,7 +224,7 @@
     b.addEventListener("click", function () {
       riderId = r.id; store(KEY_RIDER, r.id);
       Array.prototype.forEach.call(document.querySelectorAll(".sk-rider"), function (x) { x.classList.remove("on"); }); b.classList.add("on");
-      sfx.boing(); speak(r.name + "!");
+      sfx.boing(); speak(r.name + "!", /^(tommy|bonkers|smash)$/.test(r.id) ? r.id : "");
     });
     $("riders").appendChild(b);
   });

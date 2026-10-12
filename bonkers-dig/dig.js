@@ -25,6 +25,14 @@
   /* Speech: slow, friendly, English. */
   function speak(text, done) {
     lastSay = text;
+    if (window.KidsVoice) {
+      /* Pre-made clip; the safety timer still moves the game on if audio never ends. */
+      var called = false;
+      var finish = function () { if (!called) { called = true; if (done) done(); } };
+      window.KidsVoice.say([{ text: text, lang: "en" }], { rate: 0.85, pitch: 1.15, onend: finish });
+      setTimeout(finish, 1500 + text.length * 90);
+      return;
+    }
     var synth = window.speechSynthesis;
     if (!synth || typeof SpeechSynthesisUtterance === "undefined") { if (done) setTimeout(done, 600); return; }
     try {
@@ -106,7 +114,7 @@
   function dig(btn, it) {
     if (busy || btn.classList.contains("open")) return;
     busy = true;
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (window.KidsVoice) window.KidsVoice.cancel(); else if (window.speechSynthesis) window.speechSynthesis.cancel();
     btn.classList.add("digging"); sfx.dig();
     setTimeout(function () {
       btn.classList.remove("digging"); btn.classList.add("open");
@@ -141,11 +149,11 @@
   }
 
   document.getElementById("dig-again").addEventListener("click", function () {
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (window.KidsVoice) window.KidsVoice.cancel(); else if (window.speechSynthesis) window.speechSynthesis.cancel();
     newRound();
   });
   document.getElementById("dig-hear").addEventListener("click", function () {
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (window.KidsVoice) window.KidsVoice.cancel(); else if (window.speechSynthesis) window.speechSynthesis.cancel();
     speak(lastSay || sayEl.textContent);
   });
   newRound();
