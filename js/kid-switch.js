@@ -1,5 +1,8 @@
 /* Kid switcher. The list of kids comes from window.KID_SWITCH_KIDS,
-   which settings.js sets. With fewer than two kids nothing is shown. */
+   which settings.js sets. With fewer than two kids nothing is shown.
+   window.KID_SWITCH_BIG = true makes it a bigger tap target (younger kids' sites).
+   An element with id "kid-switch-slot" on the page, if present, holds the switcher;
+   otherwise it goes at the top of the page. */
 (function () {
   var KIDS = window.KID_SWITCH_KIDS || [];
 
@@ -55,7 +58,13 @@
       "padding:6px 10px;border-radius:12px;color:#16356b;background:transparent;",
       "text-decoration:none;font-size:18px;font-weight:800}",
       "#kid-switch .ks-link[aria-current=page]{background:#ffe14a}"
-    ].join("");
+    ].concat(window.KID_SWITCH_BIG ? [
+      "#kid-switch .ks-btn{min-height:60px;font-size:22px;padding:6px 16px 6px 8px;gap:8px}",
+      "#kid-switch .ks-face{width:42px;height:42px;font-size:28px}",
+      "#kid-switch .ks-caret{font-size:18px}",
+      "#kid-switch .ks-menu{min-width:230px}",
+      "#kid-switch .ks-link{min-height:64px;font-size:24px;padding:8px 14px}"
+    ] : []).join("");
     document.head.appendChild(style);
 
     var nav = document.createElement("nav");
@@ -104,7 +113,9 @@
 
     nav.appendChild(btn);
     nav.appendChild(menu);
-    document.body.insertBefore(nav, document.body.firstChild);
+    var slot = document.getElementById("kid-switch-slot");
+    if (slot) slot.appendChild(nav);
+    else document.body.insertBefore(nav, document.body.firstChild);
 
     function setOpen(open) {
       btn.setAttribute("aria-expanded", open ? "true" : "false");
