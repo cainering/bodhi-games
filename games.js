@@ -36,5 +36,12 @@ const JOYCE_GAMES = [
     about: "Paint your board, then jump, flip and grind!",
     href: "skateboard/index.html",
     accent: "#b9dcff"
+  },
+  {
+    title: "Tommy's Books",
+    emoji: "📚",
+    about: "Read Tommy and the Super Disc Launcher! Swipe to turn the page.",
+    href: "storybook/index.html",
+    accent: "#ffc9c9"
   }
 ];

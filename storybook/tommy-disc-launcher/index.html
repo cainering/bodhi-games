@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b86f0">
+<title>Tommy and the Super Disc Launcher!</title>
+<link rel="icon" href="../../apple-touch-icon.png">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff6e0;font-family:"Comic Sans MS","Chalkboard SE","Baloo 2",system-ui,sans-serif;color:#2a2a2a;overscroll-behavior:none}
+body{display:flex;flex-direction:column;height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px}
+header a{font-size:18px;font-weight:700;color:#2b86f0;text-decoration:none;background:#fff;border-radius:999px;padding:8px 14px;box-shadow:0 2px 0 #0002}
+#count{font-size:18px;font-weight:700}
+main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding:0 12px;touch-action:pan-y}
+#pic{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+#pic img{max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 4px 12px #0003;background:#fff;user-select:none;-webkit-user-drag:none}
+#text{font-size:clamp(22px,5.5vw,34px);line-height:1.35;text-align:center;font-weight:700;margin:12px 4px;max-width:900px}
+nav{display:flex;gap:12px;padding:8px 12px 12px}
+nav button{flex:1;font:inherit;font-size:26px;font-weight:800;border:0;border-radius:20px;padding:16px;background:#2b86f0;color:#fff;box-shadow:0 4px 0 #1a5fb0}
+nav button:active{transform:translateY(3px);box-shadow:0 1px 0 #1a5fb0}
+nav button:disabled{opacity:.35}
+#dl{display:none;text-align:center;font-size:20px;font-weight:700;margin:4px}
+#dl a{color:#e0532b}
+@media (orientation:landscape) and (max-height:500px){#text{font-size:20px;margin:6px}nav button{padding:8px;font-size:20px}}
+</style>
+</head>
+<body>
+<header><a href="../index.html">← Books</a><span id="count"></span><a href="tommy-disc-launcher.pdf" download>⬇ PDF</a></header>
+<main id="main"><div id="pic"><img id="img" alt=""></div><p id="text"></p><p id="dl">The End! <a href="tommy-disc-launcher.pdf" download>Download the book (PDF)</a></p></main>
+<nav><button id="prev" type="button" aria-label="Back">◀ Back</button><button id="next" type="button" aria-label="Next">Next ▶</button></nav>
+<script src="pages.js"></script>
+<script>
+(function(){
+var P=window.BOOK_PAGES,i=0,img=document.getElementById("img"),tx=document.getElementById("text");
+var m=/p=(\d+)/.exec(location.hash);if(m)i=Math.min(P.length-1,Math.max(0,+m[1]));
+function show(){img.src=P[i].img;img.alt=P[i].text;tx.textContent=P[i].text;
+document.getElementById("count").textContent=i===0?"Cover":"Page "+i+" of "+(P.length-1);
+document.getElementById("prev").disabled=i===0;document.getElementById("next").disabled=i===P.length-1;
+document.getElementById("dl").style.display=i===P.length-1?"block":"none";
+history.replaceState(null,"","#p="+i);
+[i+1,i+2].forEach(function(k){if(P[k])(new Image()).src=P[k].img;});}
+function go(d){var n=i+d;if(n<0||n>=P.length)return;i=n;show();}
+document.getElementById("prev").onclick=function(){go(-1)};document.getElementById("next").onclick=function(){go(1)};
+document.addEventListener("keydown",function(e){if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(-1);});
+var sx=null,sy=0,el=document.getElementById("main");
+el.addEventListener("touchstart",function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+el.addEventListener("touchend",function(e){if(sx===null)return;var dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;sx=null;
+if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(dx<0?1:-1);},{passive:true});
+show();})();
+</script>
+</body>
+</html>
